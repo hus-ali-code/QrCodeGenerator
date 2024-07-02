@@ -1,0 +1,66 @@
+name: Demos
+
+on: [push, pull_request]
+
+env:
+  Configuration: Release
+  ContinuousIntegrationBuild: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    name: Build demo projects
+    steps:
+      - name: Checkout git repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+      - name: Create local NuGet source
+        run: |
+          mkdir ..\LocalPackages
+          $pkgdir = Resolve-Path ..\LocalPackages
+          dotnet nuget add source $pkgdir --name Local
+      - name: Restore NuGet packages
+        run: dotnet restore --verbosity normal
+      - name: Build library package
+        run: dotnet pack --configuration Release --no-restore --verbosity normal
+      - name: Install library package
+        run: |
+          $pkg = Resolve-Path QrCodeGenerator\bin\Release\Net.Codecrete.QrCodeGenerator.*.nupkg
+          nuget push $pkg -Source Local
+      - name: Build Demo-ImageSharp
+        run: dotnet build
+        working-directory: Demo-ImageSharp
+      - name: Build Demo-ASP.NET-Core
+        run: dotnet build
+        working-directory: Demo-ASP.NET-Core
+      - name: Build Demo-ImageMagick
+        run: dotnet build
+        working-directory: Demo-ImageMagick
+      - name: Build Demo-QRCode-Variety
+        run: dotnet build
+        working-directory: Demo-QRCode-Variety
+      - name: Build Demo-SkiaSharp
+        run: dotnet build
+        working-directory: Demo-SkiaSharp
+      - name: Build Demo-System-Drawing
+        run: dotnet build
+        working-directory: Demo-System-Drawing
+      - name: Build Demo-VCard
+        run: dotnet build
+        working-directory: Demo-VCard
+      - name: Build Demo-WindowsPresentationFoundation
+        run: dotnet build
+        working-directory: Demo-WindowsPresentationFoundation
+      - name: Build Demo-WinForms
+        run: dotnet build
+        working-directory: Demo-WinForms
+      - name: Build Demo-WinUI
+        run: dotnet build
+        working-directory: Demo-WinUI
